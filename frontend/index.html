@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NetGuard | Network Monitoring & Security</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <div class="brand">NET<span>GUARD</span></div>
+    <div class="subtitle">Network Monitoring & Security Dashboard</div>
+  </div>
+  <div class="header-actions">
+    <div class="online"><i></i> LOCAL MONITOR</div>
+    <button id="refresh">Refresh</button>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <div class="eyebrow">NETWORK OPERATIONS</div>
+    <h1>Monitor your network from one dashboard.</h1>
+    <p>Real local checks for connectivity, latency, devices, services, controlled private-network ports and monitoring events.</p>
+  </div>
+  <div class="hero-meta">
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="last-updated">Last Updated: <b id="lastUpdated">--</b></div>
+  </div>
+</section>
+
+<section class="cards">
+  <div class="card"><div class="label">LOCAL IP</div><div class="value" id="localIp">--</div><div class="hint" id="interface">Interface: --</div></div>
+  <div class="card"><div class="label">GATEWAY</div><div class="value" id="gateway">--</div><div class="hint">Default route</div></div>
+  <div class="card"><div class="label">DNS SERVER</div><div class="value" id="dnsServer">--</div><div class="hint">Configured resolver</div></div>
+  <div class="card"><div class="label">LATENCY</div><div class="value" id="latency">--</div><div class="hint" id="pingTarget">Ping target: --</div></div>
+</section>
+
+<section class="layout">
+  <div class="panel">
+    <div class="panel-title">
+      <div><h2>Network Overview</h2><p>Connectivity, gateway, DNS and latency state</p></div>
+      <span id="connBadge" class="badge">CHECKING</span>
+    </div>
+    <div class="checks">
+      <div class="check"><span>Internet</span><b id="internet">--</b></div>
+      <div class="check"><span>DNS resolution</span><b id="dns">--</b></div>
+      <div class="check"><span>Gateway</span><b id="gatewayCheck">--</b></div>
+    </div>
+    <div class="manual-grid">
+      <button class="secondary" data-test="connectivity">Test Connectivity</button>
+      <button class="secondary" data-test="dns">Test DNS</button>
+      <button class="secondary" data-test="gateway">Test Gateway</button>
+    </div>
+    <div class="pingbox">
+      <input id="host" value="8.8.8.8" placeholder="Host or IP">
+      <button id="ping">Ping</button>
+    </div>
+    <div class="pingresult" id="pingResult">Ready for a manual connectivity test.</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><div><h2>IP / Gateway / DNS</h2><p>Detected from the local operating system</p></div></div>
+    <div class="info-list">
+      <div><span>Hostname</span><b id="hostname">--</b></div>
+      <div><span>Operating System</span><b id="os">--</b></div>
+      <div><span>Network Interface</span><b id="interface2">--</b></div>
+      <div><span>Default Gateway</span><b id="gateway2">--</b></div>
+      <div><span>DNS Server</span><b id="dns2">--</b></div>
+    </div>
+  </div>
+</section>
+
+<section class="layout">
+  <div class="panel">
+    <div class="panel-title"><div><h2>Local Services</h2><p>TCP checks on this computer</p></div></div>
+    <div id="services" class="service-list"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><div><h2>Active Devices</h2><p>Devices currently visible through the local ARP/neighbor table</p></div><strong id="deviceCount" class="count">0</strong></div>
+    <div class="table-wrap"><table><thead><tr><th>IP Address</th><th>MAC Address</th><th>State / Interface</th><th>Vendor</th></tr></thead><tbody id="devices"></tbody></table></div>
+  </div>
+</section>
+
+<section class="panel scan-panel">
+  <div class="panel-title">
+    <div><h2>Private Network Port Scanner</h2><p>Real TCP connection tests. Only localhost and private IPv4 targets are accepted; maximum 100 ports.</p></div>
+    <span class="badge">CONTROLLED</span>
+  </div>
+  <div class="scanbox">
+    <label>Target<input id="scanTarget" value="127.0.0.1" placeholder="127.0.0.1 or 192.168.0.1"></label>
+    <label>Start Port<input id="scanStart" type="number" min="1" max="65535" value="5000"></label>
+    <span class="to">to</span>
+    <label>End Port<input id="scanEnd" type="number" min="1" max="65535" value="5000"></label>
+    <button id="scan">Scan</button>
+    <button id="clearScan" class="secondary">Clear</button>
+  </div>
+  <div class="scan-summary">
+    <div><span>Status</span><b id="scanStatus">READY</b></div>
+    <div><span>Open</span><b id="openCount">0</b></div>
+    <div><span>Closed</span><b id="closedCount">0</b></div>
+    <div><span>Duration</span><b id="scanDuration">--</b></div>
+  </div>
+  <div id="scanResult" class="scanresult">No scan run yet.</div>
+  <div class="table-wrap scan-table-wrap">
+    <table><thead><tr><th>Port</th><th>Status</th><th>Service</th><th>TCP Response</th></tr></thead><tbody id="scanTable"></tbody></table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title">
+    <div><h2>Security & Monitoring Events</h2><p>Persistent SQLite event log; this is monitoring/event logging, not a full IDS.</p></div>
+    <button id="export">Export CSV</button>
+  </div>
+  <div id="events" class="events"></div>
+</section>
+
+<section class="layout">
+  <div class="panel">
+    <div class="panel-title"><div><h2>Windows Diagnostics</h2><p>Run the included fixed-command diagnostic script from Windows.</p></div></div>
+    <p class="note">Use <code>scripts\windows_network.bat</code>. It runs ipconfig, route, arp, nslookup and ping without accepting arbitrary dashboard commands.</p>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><div><h2>Linux / Kali Diagnostics</h2><p>Use the included Bash script on Kali/Linux.</p></div></div>
+    <p class="note">Use <code>scripts/network_check.sh</code>. It checks ip addr, ip route, ip neigh, ping, traceroute/tracepath and DNS tools when installed.</p>
+  </div>
+</section>
+</main>
+
+<footer>NetGuard • Python + Flask + SQLite + JavaScript • Local monitoring and authorized private-network testing</footer>
+<script src="/script.js"></script>
+</body>
+</html>
