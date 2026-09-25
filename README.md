@@ -1,490 +1,490 @@
 # NetGuard — Network Monitoring & Security Dashboard
 
-NetGuard is a local network monitoring portfolio project built with **Python, Flask, HTML, CSS, JavaScript and SQLite**. It performs real checks on the machine where the Flask application is running and provides a controlled scanner for localhost/private IPv4 targets.
+NetGuard is a local network monitoring and diagnostics dashboard built with **Python, Flask, SQLite, HTML5, CSS3, and JavaScript**.
 
-## Project Overview
+It provides a centralized interface for viewing network information, checking connectivity, discovering devices on the local network, monitoring local services, performing controlled TCP port checks, and recording monitoring and security-related events.
 
-The dashboard combines:
-
-- Network Monitoring
-- IP & Gateway Monitoring
-- DNS Monitoring
-- Ping & Latency Monitoring
-- Active Device Discovery
-- Local Service Monitoring
-- Controlled Private-Network Port Scanning
-- Security & Monitoring Event Logging
-- SQLite persistence
-- CSV export
-- Fixed Windows CMD diagnostics
-- Linux/Kali Bash diagnostics
-
-**No fake network devices, scan results or security events are generated.**
+---
 
 ## Features
 
-### Network Monitoring
+### 🌐 Network Information
 
-The dashboard reads the local operating system/network state and checks:
+NetGuard provides information about the current network environment, including:
 
-- Local IPv4 address
+- Local IP address
 - Network interface
 - Default gateway
-- Configured DNS server
-- Internet reachability using a real ping to `8.8.8.8`
-- DNS resolution of `example.com`
-- Gateway reachability
-- Ping latency
+- DNS information
+- Connectivity status
+- Network health information
+- Ping and latency information
 
-Health states are:
+### 🔎 Local Device Discovery
 
-- **HEALTHY** — internet, DNS and gateway checks are working
-- **DEGRADED** — at least one check works, but another check needs attention
-- **OFFLINE** — the connectivity checks are not responding
+NetGuard can inspect the local ARP/neighbor table to identify devices visible to the system.
 
-### IP & Gateway Monitoring
+The discovery information can include:
 
-The IP, interface and default route are collected from the local operating system. The dashboard does not invent an address when detection fails; it displays `Unavailable`.
+- IP address
+- MAC address
+- Network state
+- Neighbor information
+- Discovered devices
 
-### DNS Monitoring
+### 🖥️ Local Service Monitoring
 
-The configured DNS server is read from the local operating system. A real DNS resolution test is also performed for `example.com`.
+NetGuard can monitor selected TCP services and determine whether they are reachable.
 
-### Ping & Latency Monitoring
+The application can check:
 
-The Ping control performs a real operating-system ICMP ping. The result and measured latency are returned to the dashboard and logged as a `PING` event.
+- NetGuard Flask service
+- Local development services
+- Other configured TCP services
 
-### Active Device Discovery
+Service monitoring provides information such as:
 
-The dashboard reads:
+- Service name
+- Host
+- Port
+- Availability
+- Response status
 
-- Windows `arp -a`
-- Linux/Kali `ip neigh`
+### 🔐 Controlled TCP Port Scanner
 
-It filters invalid, broadcast, multicast and duplicate entries.
+NetGuard includes a controlled TCP port scanning feature for network diagnostics.
 
-The UI description is intentionally limited:
+Capabilities include:
 
-> Displays devices currently visible through the local ARP/neighbor table.
+- TCP connectivity checks
+- Configurable target IP
+- Configurable port range
+- Open/closed port detection
+- Maximum scan limits
+- Input validation
 
-It does **not** claim that every device on the LAN is discovered. Vendor identification is shown as `Unknown` unless a safe local method provides it.
+The scanner is intended for authorized systems and local network troubleshooting.
 
-### Local Service Monitoring
+### 🚨 Security & Monitoring Events
 
-NetGuard checks TCP connectivity on localhost for:
+NetGuard records monitoring and security-related events using a local SQLite database.
 
-| Service | Port |
-|---|---:|
-| SSH | 22 |
-| HTTP | 80 |
-| HTTPS | 443 |
-| MySQL | 3306 |
-| NetGuard | 5000 |
-| HTTP-Alt | 8080 |
+Events can include:
 
-These are real TCP connection tests. NetGuard itself should show **OPEN** on port `5000` while the Flask application is running.
+- Network status changes
+- Service availability changes
+- Monitoring alerts
+- Diagnostic events
+- Security-related observations
 
-MySQL is only monitored as a local service. SQLite remains the application's database.
-
-## Private Network Port Scanner
-
-The scanner performs real TCP connection tests.
-
-Inputs:
-
-- Target IP / hostname
-- Start Port
-- End Port
-- Scan
-- Clear
-
-Results:
-
-| Port | Status | Service | TCP Response |
-|---|---|---|---|
-
-The scanner also reports:
-
-- Scan status
-- Open ports count
-- Closed ports count
-- Scan duration
-
-### Security Restrictions
-
-Only these IPv4 ranges are allowed:
-
-- `127.0.0.0/8`
-- `10.0.0.0/8`
-- `172.16.0.0/12`
-- `192.168.0.0/16`
-
-`localhost` is accepted and normalized to `127.0.0.1`.
-
-The scanner rejects:
-
-- Public Internet targets
-- Invalid IP addresses
-- Hostnames that resolve outside the permitted ranges
-- Invalid port numbers
-- Port ranges larger than 100 ports
-- Reversed port ranges
-
-Error example:
-
-> Only localhost and private-network targets are allowed.
-
-This scanner is intended only for systems and networks you own or are authorized to test.
-
-## Security & Monitoring Event Logging
-
-Events are stored in SQLite and include:
+Each event can contain:
 
 - Timestamp
-- Event Type
+- Event type
 - Severity
 - Description
 
-Event types include:
+### 📊 Dashboard
 
-- `CONNECTIVITY`
-- `DNS`
-- `GATEWAY`
-- `PING`
-- `PORT_SCAN`
-- `SERVICE_STATUS`
-- `DEVICE_DISCOVERY`
-- `DIAGNOSTIC`
+The web dashboard provides a centralized view of network monitoring information.
 
-Severity levels used by the application are:
+It brings together:
 
-- `INFO`
-- `WARNING`
-- `ERROR`
+- Network information
+- Connectivity status
+- Device discovery
+- Service monitoring
+- Port scanning
+- Security events
+- Monitoring information
 
-The event log is **Security & Monitoring Event Logging**. It is not a full intrusion detection system.
+### 🔄 Automatic Updates
 
-NetGuard does not claim:
+The dashboard supports automatic refresh of monitoring information.
 
-- Full IDS
-- Enterprise SOC
-- Malware detection
-- Antivirus
-- Full vulnerability scanning
-- Internet-wide scanning
-- Attack detection
-- Complete network visibility
+### 📁 CSV Export
 
-## SQLite Database
+Monitoring and event information can be exported in CSV format.
 
-The application automatically creates:
+---
 
-`database/netguard.db`
-
-It creates the required tables automatically and stores monitoring snapshots and security/monitoring events.
-
-Events are loaded from SQLite when the dashboard is opened and remain after Flask is restarted.
-
-## CSV Export
-
-The **Export CSV** button downloads:
-
-`netguard_events.csv`
-
-The CSV contains:
-
-- Timestamp
-- Event Type
-- Severity
-- Description
-
-## Windows Diagnostics
-
-Run the Windows diagnostic script:
-
-`scripts\windows_network.bat`
-
-The fixed diagnostic script uses:
-
-- `ipconfig`
-- `route`
-- `arp`
-- `nslookup`
-- `ping`
-
-It does not accept arbitrary dashboard commands.
-
-## Linux/Kali Diagnostics
-
-Run:
-
-```bash
-chmod +x scripts/network_check.sh
-./scripts/network_check.sh
-```
-
-The script uses the commands available on the system:
-
-- `ip addr`
-- `ip route`
-- `ip neigh`
-- `ping`
-- `traceroute`
-- `tracepath`
-- `nslookup`
-- `dig`
-
-Missing commands are reported instead of crashing the script.
-
-## Automatic Refresh
-
-The dashboard automatically refreshes every **30 seconds**.
-
-It updates:
-
-- Connectivity
-- Latency
-- Gateway
-- DNS
-- Local services
-- Active devices
-- Stored events
-
-The UI displays a **Last Updated** timestamp.
-
-## Manual Testing
-
-Buttons are available for:
-
-- Test Connectivity
-- Test DNS
-- Test Gateway
-- Ping a supplied host/IP
-
-A loading state is shown while a manual test runs so the browser remains responsive.
-
-## Installation
-
-### Requirements
-
-- Python 3.10+ recommended
-- Flask 3.x
-- Windows, Linux or Kali Linux
-- Network commands appropriate to the operating system
-
-The project intentionally has only the required Python dependency in `requirements.txt`.
-
-## How to Run on Windows
-
-### Easiest method
-
-1. Extract the ZIP.
-2. Open the `NetGuard_Master_Final` folder.
-3. Double-click **`RUN_NETGUARD.bat`**.
-4. The single master launcher enters `NetGuard_V2`, creates a virtual environment if needed, and installs the requirements.
-5. Flask starts on `127.0.0.1:5000`.
-6. Open:
-
-`http://127.0.0.1:5000`
-
-### Manual method
-
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python backend\app.py
-```
-
-Then open `http://127.0.0.1:5000`.
-
-## How to Run on Linux/Kali
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-python3 -m pip install -r requirements.txt
-python3 backend/app.py
-```
-
-Then open `http://127.0.0.1:5000`.
-
-## Project Architecture
+## Architecture
 
 ```text
-Browser Dashboard
-       |
-       v
-Flask API
-       |
-       +--> Network monitoring functions
-       |       +--> IP / interface / gateway / DNS
-       |       +--> ping / latency
-       |       +--> ARP / neighbor discovery
-       |       +--> local TCP service checks
-       |       +--> controlled TCP port scanner
-       |
-       +--> SQLite
-               +--> security_events
-               +--> monitoring_snapshots
+┌───────────────────────────────┐
+│        Web Dashboard          │
+│       HTML / CSS / JS         │
+└───────────────┬───────────────┘
+                │
+                │ HTTP / JSON
+                ▼
+┌───────────────────────────────┐
+│        Flask Backend          │
+│            Python             │
+├───────────────────────────────┤
+│ Network Monitoring            │
+│ Device Discovery              │
+│ Service Monitoring            │
+│ TCP Port Scanner              │
+│ Event Management              │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│            SQLite             │
+│       Local Event Storage     │
+└───────────────────────────────┘
 ```
 
-## Folder Structure
+---
+
+## Technology Stack
+
+### Backend
+
+- Python
+- Flask
+- SQLite
+
+### Frontend
+
+- HTML5
+- CSS3
+- JavaScript
+
+### Networking
+
+- TCP socket checks
+- ICMP/ping diagnostics
+- ARP/neighbor-table inspection
+- Network interface information
+
+### Platform Support
+
+- Windows
+- Linux
+- Kali Linux
+
+---
+
+## Project Structure
 
 ```text
-NetGuard_V2/
+NetGuard/
+│
 ├── backend/
 │   ├── app.py
 │   ├── database.py
 │   └── monitor.py
+│
 ├── database/
 │   └── .gitkeep
+│
 ├── frontend/
 │   ├── index.html
 │   ├── script.js
 │   └── style.css
+│
 ├── scripts/
 │   ├── network_check.sh
 │   └── windows_network.bat
+│
 ├── .gitignore
 ├── README.md
-├── requirements.txt
-└── (launcher is the master-folder `RUN_NETGUARD.bat`)
+└── requirements.txt
 ```
 
-The SQLite database is created automatically in `database/netguard.db`.
+---
 
-## README Demo Test
+## Requirements
 
-### STEP 1
+- Python 3.x
+- pip
+- Git
 
-Start NetGuard.
+### Windows
 
-### STEP 2
+- Command Prompt or PowerShell
 
-Open the dashboard.
+### Linux / Kali Linux
 
-### STEP 3
+- Terminal
+- Python 3
+- pip
 
-Go to:
+---
 
-**Private Network Port Scanner**
+## Installation
 
-### STEP 4
+### 1. Clone the Repository
 
-Enter:
+```bash
+git clone https://github.com/8ist7/NetGuard.git
+cd NetGuard
+```
 
-**Target:**
+### 2. Create a Virtual Environment
 
-`127.0.0.1`
+#### Windows
 
-**Start Port:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-`5000`
+#### Linux / Kali Linux
 
-**End Port:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-`5000`
+### 3. Install Dependencies
 
-### STEP 5
+```bash
+pip install -r requirements.txt
+```
 
-Click **Scan**.
+---
 
-### Expected
+## Running NetGuard
 
-**Port:** `5000`
+Start the Flask application:
 
-**Status:** `OPEN`
+```bash
+python backend/app.py
+```
 
-**Service:** `NetGuard`
+Then open:
 
-The result is produced by a real TCP connection test against the running Flask application.
+```text
+http://127.0.0.1:5000
+```
 
-### STEP 6
+---
 
-Scan an unused local port.
+## Network Monitoring
 
-For example, if port `4999` is unused:
+The dashboard provides information about the current system's network configuration.
 
-`127.0.0.1` → `4999` → `4999`
+Typical information includes:
 
-### Expected
+```text
+Local IP
+Network Interface
+Gateway
+DNS
+Connectivity
+Latency
+```
 
-**Status:** `CLOSED`
+---
 
-The exact result depends on what is actually running on the computer.
+## Device Discovery
 
-### STEP 7
+NetGuard uses the system's local ARP/neighbor information to identify devices visible to the host.
 
-Check:
+The results may include:
 
-**Security & Monitoring Events**
+```text
+IP Address
+MAC Address
+State
+```
 
-### Expected
+Device discovery is limited to information available to the local operating system.
 
-A `PORT_SCAN` event is present with the scanned target/range and the number of open ports.
+---
 
-## Functional Validation Checklist
+## Service Monitoring
 
-Before presentation, verify:
+NetGuard can check configured TCP services and determine whether they are reachable.
 
-- [ ] Application starts successfully
-- [ ] Dashboard loads
-- [ ] Local IP detected
-- [ ] Network interface detected
-- [ ] Gateway detected
-- [ ] DNS detected
-- [ ] Internet status checked
-- [ ] Ping works
-- [ ] Latency displayed
-- [ ] Active devices displayed from ARP/neighbor data
-- [ ] Broadcast/multicast entries filtered
-- [ ] Local services checked
-- [ ] NetGuard port 5000 detected as OPEN while Flask is running
-- [ ] MySQL 3306 detected if actually running
-- [ ] Port scanner accepts private targets
-- [ ] Port scanner rejects public targets
-- [ ] Port scanner detects OPEN ports
-- [ ] Port scanner detects CLOSED ports
-- [ ] Port range is limited to 100 ports
-- [ ] `PORT_SCAN` event created
-- [ ] Events stored in SQLite
-- [ ] Events remain after restart
-- [ ] CSV export works
-- [ ] Windows diagnostics work
-- [ ] Linux/Kali diagnostics script exists
-- [ ] Automatic refresh works
-- [ ] No fake data
-- [ ] No fake devices
-- [ ] No fake security events
-- [ ] Application handles network errors without crashing
-- [ ] README is updated
-- [ ] requirements.txt is correct
-- [ ] run_netguard.bat works
+Example:
 
-## Interview Demonstration Flow
+```text
+Service: NetGuard
+Host: 127.0.0.1
+Port: 5000
+Status: Available
+```
 
-1. Start NetGuard with `run_netguard.bat`.
-2. Explain that the dashboard uses real local operating-system/network checks.
-3. Point out the detected local IP, interface, gateway and DNS.
-4. Show Internet/DNS/Gateway health and the real latency measurement.
-5. Show Local Services and explain that each status is a TCP connection test.
-6. Point out **NetGuard : 5000 OPEN** while the application is running.
-7. Open **Private Network Port Scanner**.
-8. Run the required `127.0.0.1:5000` test.
-9. Explain that the scanner is restricted to localhost/private IPv4 ranges and 100 ports.
-10. Scan another unused localhost port to demonstrate `CLOSED`.
-11. Open Security & Monitoring Events and show the persistent `PORT_SCAN` entry.
-12. Click Export CSV and show the downloaded event file.
-13. Show the Windows diagnostic batch file.
-14. If using Kali, run `scripts/network_check.sh`.
-15. Finish by explaining the SQLite persistence and the limitations of ARP-based device visibility.
+---
 
-## Resume Claim
+## TCP Port Scanner
 
-The implemented project supports this factual resume description:
+The built-in port scanner performs controlled TCP connection checks.
 
-> **NetGuard — Network Monitoring & Security Dashboard**  
-> Developed a Python/Flask dashboard for network connectivity, IP/gateway monitoring, DNS checks, ping/latency measurement, active-device discovery, local service monitoring and controlled private-network port scanning. Integrated SQLite-based event logging with severity and CSV export, along with Windows CMD and Linux Bash network diagnostic scripts.
+Example:
 
-The project should only be described using features that are actually implemented and tested.
+```text
+Target: 192.168.1.10
+
+Ports:
+22
+80
+443
+8080
+```
+
+### Scanner Restrictions
+
+- Private IPv4 network targeting
+- Maximum port limits
+- Input validation
+- Controlled TCP checks
+
+Only scan systems and networks that you own or have explicit permission to test.
+
+---
+
+## Event Logging
+
+NetGuard stores monitoring events locally using SQLite.
+
+The event system records:
+
+```text
+Timestamp
+Event Type
+Severity
+Description
+```
+
+Example event categories:
+
+```text
+Network
+Service
+Monitoring
+Security
+Diagnostic
+```
+
+---
+
+## Database
+
+NetGuard uses **SQLite** for local data storage.
+
+The database can store:
+
+- Monitoring events
+- Security events
+- Diagnostic information
+- Event timestamps
+- Severity information
+
+---
+
+## CSV Export
+
+Monitoring records can be exported to CSV format.
+
+CSV files can be opened using:
+
+- Microsoft Excel
+- LibreOffice Calc
+- Google Sheets
+- Python
+- Other data-analysis tools
+
+---
+
+## Windows Diagnostics
+
+NetGuard includes Windows-specific diagnostic support through:
+
+```text
+scripts/windows_network.bat
+```
+
+The script can be used for common Windows network diagnostics.
+
+---
+
+## Linux / Kali Diagnostics
+
+Linux-based systems can use:
+
+```text
+scripts/network_check.sh
+```
+
+The script provides basic network diagnostic information from the Linux environment.
+
+---
+
+## Security Scope
+
+NetGuard is designed as a **local network monitoring and diagnostics project**.
+
+The project focuses on:
+
+- Network visibility
+- Connectivity diagnostics
+- Local device discovery
+- Service monitoring
+- Controlled TCP checks
+- Security event logging
+
+NetGuard does not claim to provide:
+
+- Full enterprise network monitoring
+- Complete network visibility
+- Full vulnerability assessment
+- Malware detection
+- Full intrusion detection
+- Enterprise SOC functionality
+- Complete attack detection
+- Endpoint detection and response
+- Automated exploitation
+
+---
+
+## Privacy
+
+NetGuard is designed for local operation.
+
+The application does not require:
+
+- A cloud backend
+- A third-party monitoring server
+- A remote database
+
+Network monitoring information is processed locally by the application.
+
+SQLite is used for local event storage.
+
+---
+
+## Responsible Use
+
+NetGuard's networking and scanning functionality should only be used on systems and networks where you have authorization.
+
+Do not use the port scanner or network discovery features against unauthorized systems.
+
+The project is intended for:
+
+- Personal labs
+- Cybersecurity learning
+- Network troubleshooting
+- Authorized testing
+- Local development
+- Educational environments
+
+---
+
+## License
+
+This project is provided for educational and authorized network-monitoring purposes.
+
+Use the project responsibly and only against systems and networks you are permitted to monitor or test.
+
+---
+
+## Repository
+
+GitHub:
+
+https://github.com/8ist7/NetGuard
